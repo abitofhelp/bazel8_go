@@ -1,0 +1,54 @@
+load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("@gazelle//:def.bzl", "gazelle")
+
+# Gazelle configuration
+# gazelle:prefix github.com/abitofhelp/bazel8_go
+# gazelle:go_naming_convention go_default_library
+gazelle(name = "gazelle")
+
+# Generate BUILD.bazel files
+# The go_deps extension parses this file directly, so external tooling
+# such as gazelle update-repos is no longer needed.
+#gazelle(
+#    name = "gazelle-update-repos",
+#    args = [
+#        "-from_file=go.mod",
+#        "-to_macro=deps.bzl%go_dependencies",
+#        "-prune",
+#    ],
+#    command = "update-repos",
+#)
+
+# Buildifier configuration
+buildifier(
+    name = "buildifier.check",
+    exclude_patterns = [
+        "./bazel-*",
+        "./git/*",
+        "./vendor/*",
+    ],
+    lint_mode = "warn",
+    mode = "check",
+    verbose = True,
+)
+
+buildifier(
+    name = "buildifier.fix",
+    exclude_patterns = [
+        "./bazel-*",
+        "./git/*",
+        "./vendor/*",
+    ],
+    lint_mode = "warn",
+    mode = "fix",
+    verbose = True,
+)
+
+# Workspace visibility
+package(default_visibility = ["//visibility:public"])
+
+# Export go.mod for dependency resolution
+exports_files([
+    "go.mod",
+    "go.sum",
+])

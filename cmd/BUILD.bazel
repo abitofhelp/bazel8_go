@@ -1,0 +1,21 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "main.go",
+    ],
+    importpath = "github.com/abitofhelp/bazel8_go/cmd",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/greeting:go_default_library",
+        "//pkg/logger:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "main",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

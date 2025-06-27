@@ -1,0 +1,17 @@
+# Use bzlmod for external dependencies
+common --enable_bzlmod
+
+# Go specific settings
+build --experimental_platforms_api
+build --experimental_cc_shared_library
+
+# Buildifier settings
+build --output_groups=+buildifier_outputs
+
+# Test settings
+test --test_output=errors
+test --test_verbose_timeout_warnings
+
+# Use go.mod as the source of truth for dependencies
+# This option is no longer needed with bzlmod.
+# build --@rules_go//go/config:external=external
