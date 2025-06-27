@@ -1,7 +1,5 @@
 # Bazel8_Go
 
-An example application demonstrating the use of both Go and Bazel8 build systems.
-
 ## Overview
 
 This project demonstrates how to set up and utilize both Go's native build system and Bazel8 for building and testing Go applications. It includes a simple greeting package and a command-line application that uses this package. The Go's go.mod file is the source of truth for dependencies in Bazel.
