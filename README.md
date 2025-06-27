@@ -1,5 +1,9 @@
 # Bazel8_Go
 
+[![codecov](https://codecov.io/gh/abitofhelp/bazel8_go/graph/badge.svg)](https://codecov.io/gh/abitofhelp/bazel8_go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/abitofhelp/bazel8_go)](https://goreportcard.com/report/github.com/abitofhelp/bazel8_go)
+[![GoDoc](https://godoc.org/github.com/abitofhelp/bazel8_go?status.svg)](https://godoc.org/github.com/abitofhelp/bazel8_go)
+
 ## Overview
 
 This project demonstrates how to set up and utilize both Go's native build system and Bazel8 for building and testing Go applications. It includes a simple greeting package and a command-line application that uses this package. The Go's go.mod file is the source of truth for dependencies in Bazel.
