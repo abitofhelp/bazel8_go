@@ -12,7 +12,7 @@ The codebase is organized into modular, reusable packages that adhere to the sin
 
 Key components include:
 
-- **Greeting Package**: Provides functionality for generating personalized greeting messages with formatted monetary amounts. It demonstrates proper error handling, context management, and parameter validation.
+- **Greeting Package**: Provides functionality for generating personalized greeting messages. It demonstrates proper error handling, context management, and parameter validation.
 
 - **Logger Package**: Implements a context-aware logger that includes context information in log messages. It provides different logging levels (info, warning, error, fatal) and follows a singleton pattern with a DefaultLogger instance.
 
@@ -56,7 +56,7 @@ Both Go's native build system and Bazel8 are fully supported, allowing developer
    ```bash
    # Build the project
    bazel build //...
-   
+
    # Run the application
    bazel run //cmd:main
    ```
@@ -65,7 +65,7 @@ Both Go's native build system and Bazel8 are fully supported, allowing developer
    ```bash
    # Run directly without creating an executable
    go run cmd/main.go
-   
+
    # Or build an executable and then run it
    go build -o main cmd/main.go
    ./main
@@ -115,6 +115,14 @@ The Makefile includes many more commands for specific tasks. Run `make help` to 
 For more detailed documentation, see the [DOCS](./DOCS/README.md) directory.
 
 ## Testing
+
+The project includes comprehensive tests for all packages, including:
+
+- Unit tests for the greeting package
+- Unit tests for the logger package
+- Unit and integration tests for the command-line application
+
+Each package's README.md contains specific information about its tests.
 
 ### Using Bazel
 

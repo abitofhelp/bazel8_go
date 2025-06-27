@@ -50,5 +50,46 @@ The main application:
 
 - `github.com/dustin/go-humanize` - For formatting large numbers
 - `github.com/abitofhelp/bazel8_go/pkg/greeting` - For generating greeting messages
+- `github.com/stretchr/testify/assert` - For assertions in tests
 
 When using Go's build system, these dependencies are managed through the go.mod file at the root of the project.
+
+## Testing
+
+The command-line application includes both unit and integration tests to ensure its functionality works as expected.
+
+### Unit Tests
+
+Unit tests verify the behavior of individual components in isolation, using mocks for external dependencies.
+
+Run the unit tests:
+
+```bash
+# Using Go's testing tools
+go test -v ./cmd
+
+# Using Bazel
+bazel test //cmd:go_default_test
+```
+
+### Integration Tests
+
+Integration tests verify the interaction between the command-line application and its dependencies, such as the greeting package.
+
+Run the integration tests:
+
+```bash
+# Using Go's testing tools
+go test -v ./cmd -tags=integration
+
+# Using Bazel
+bazel test //cmd:go_default_test
+```
+
+### Test Coverage
+
+The tests aim to achieve at least 80% code coverage. You can check the coverage with:
+
+```bash
+go test -cover ./cmd
+```

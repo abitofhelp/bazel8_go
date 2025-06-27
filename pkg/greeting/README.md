@@ -4,12 +4,12 @@ This package provides greeting functionality for the Bazel8_Go project.
 
 ## Overview
 
-The greeting package offers a way to generate personalized greeting messages with monetary amounts. It's designed to be context-aware, supporting cancellation and timeouts, and provides comprehensive error handling.
+The greeting package offers a way to generate personalized greeting messages. It's designed to be context-aware, supporting cancellation and timeouts, and provides comprehensive error handling.
 
 ## Features
 
 - Context-aware operations with support for cancellation and timeouts
-- Personalized greeting messages with formatted monetary amounts
+- Personalized greeting messages
 - Comprehensive error handling with custom error types
 - Input validation
 
@@ -35,18 +35,18 @@ func main() {
 	// Create a context
 	ctx := context.Background()
 
-	// Get a greeting for a specific name with winnings amount
-	message, err := greeting.Greet(ctx, "John", 1234567)
+	// Get a greeting for a specific name
+	message, err := greeting.Greet(ctx, "John")
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
-	fmt.Println(message) // Outputs: Howdy John! You have won $12,345.67 USD!
+	fmt.Println(message) // Outputs: Howdy John!
 
 	// Using a context with timeout
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	message, err = greeting.Greet(timeoutCtx, "Alice", 9876543)
+	message, err = greeting.Greet(timeoutCtx, "Alice")
 	if err != nil {
 		if errors.Is(err, greeting.ErrContextDeadlineExceeded) {
 			log.Println("Operation timed out")
@@ -65,17 +65,16 @@ func main() {
 
 ### Functions
 
-#### `Greet(ctx context.Context, name string, winnings uint64) (string, error)`
+#### `Greet(ctx context.Context, name string) (string, error)`
 
-Returns a personalized greeting message for the given name and winning amount.
+Returns a personalized greeting message for the given name.
 
 **Parameters:**
 - `ctx` (context.Context): The context for the operation, supporting cancellation and timeouts.
 - `name` (string): The name to include in the greeting. Cannot be empty.
-- `winnings` (uint64): The winning amount in cents (e.g., 1234567 = $12,345.67).
 
 **Returns:**
-- (string): A greeting message in the format "Howdy {name}! You have won ${amount} USD!"
+- (string): A greeting message in the format "Howdy {name}!"
 - (error): An error if the operation failed. Possible errors include:
   - `ErrInvalidName`: If the name is empty.
   - `ErrContextCanceled`: If the context was canceled during processing.
@@ -84,18 +83,16 @@ Returns a personalized greeting message for the given name and winning amount.
 ### Error Types
 
 - `ErrInvalidName`: Returned when the provided name is empty.
-- `ErrInvalidWinnings`: Returned when the provided winnings amount is negative.
 - `ErrContextCanceled`: Returned when the context is canceled during processing.
 - `ErrContextDeadlineExceeded`: Returned when the context deadline is exceeded during processing.
 
 ## Implementation Details
 
 The package implements a greeting function that:
-1. Takes a context, name, and winnings amount as parameters
+1. Takes a context and name as parameters
 2. Validates the input parameters (name cannot be empty)
 3. Handles context cancellation and timeouts
-4. Formats the monetary amount using the go-humanize library
-5. Returns a formatted greeting message and any error that occurred
+4. Returns a formatted greeting message and any error that occurred
 
 ## Testing
 

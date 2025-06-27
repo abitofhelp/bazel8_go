@@ -1,4 +1,5 @@
-// Package greeting provides greeting functionality.
+// Package greeting provides functionality for generating personalized greeting messages.
+// See doc.go for detailed package documentation.
 package greeting
 
 import (
@@ -6,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	"github.com/dustin/go-humanize"
 
 	"github.com/abitofhelp/bazel8_go/pkg/logger"
 )
@@ -17,9 +16,6 @@ var (
 	// ErrInvalidName is returned when the provided name is empty.
 	ErrInvalidName = errors.New("name cannot be empty")
 
-	// ErrInvalidWinnings is returned when the provided winnings amount is negative.
-	ErrInvalidWinnings = errors.New("winnings amount cannot be negative")
-
 	// ErrContextCanceled is returned when the context is canceled during processing.
 	ErrContextCanceled = errors.New("operation was canceled by context")
 
@@ -27,25 +23,56 @@ var (
 	ErrContextDeadlineExceeded = errors.New("operation timed out")
 )
 
-// Greet returns a personalized greeting message for the given name and winning amount.
-// The function validates that the name is not empty and formats the monetary amount
-// using the go-humanize library to make it more readable.
+// Greet generates a personalized greeting message for the given name.
 //
-// The winnings amount is expected to be in cents (e.g., 1234567 = $12,345.67).
+// # Function Purpose
 //
-// If the name is empty, ErrInvalidName is returned.
-// If the context is canceled, ErrContextCanceled is returned.
-// If the context deadline is exceeded, ErrContextDeadlineExceeded is returned.
+// This function creates a friendly greeting message that includes the recipient's name.
+// It's designed to be used in applications that need to generate personalized messages,
+// such as welcome notifications.
 //
-// Example:
+// # Parameters
+//
+//   - ctx: A context.Context that can be used to cancel the operation or set a deadline.
+//     This follows the project convention of having context as the first parameter.
+//
+//   - name: The name of the person to greet. This must be a non-empty string.
+//     If an empty string is provided, ErrInvalidName will be returned.
+//
+// # Return Values
+//
+//   - string: The formatted greeting message if successful.
+//     Example: "Howdy John!"
+//
+// - error: An error if something went wrong. Possible errors include:
+//   - ErrInvalidName: If the name parameter is empty
+//   - ErrContextCanceled: If the context was canceled during processing
+//   - ErrContextDeadlineExceeded: If the context deadline was exceeded
+//
+// # Example Usage
 //
 //	ctx := context.Background()
-//	message, err := greeting.Greet(ctx, "John", 1234567)
+//	message, err := greeting.Greet(ctx, "John")
 //	if err != nil {
 //	    log.Fatalf("Error: %v", err)
 //	}
-//	// Output: Howdy John! You have won $12,345.67 USD!
-func Greet(ctx context.Context, name string, winnings uint64) (string, error) {
+//	fmt.Println(message)
+//	// Output: Howdy John!
+//
+// # Error Handling
+//
+// It's recommended to use errors.Is() to check for specific error types:
+//
+//	if errors.Is(err, greeting.ErrInvalidName) {
+//	    // Handle invalid name error
+//	} else if errors.Is(err, greeting.ErrContextCanceled) {
+//	    // Handle context cancellation
+//	} else if errors.Is(err, greeting.ErrContextDeadlineExceeded) {
+//	    // Handle timeout
+//	} else if err != nil {
+//	    // Handle other errors
+//	}
+func Greet(ctx context.Context, name string) (string, error) {
 	// Check if context is already canceled or deadline exceeded
 	if ctx.Err() != nil {
 		if errors.Is(ctx.Err(), context.Canceled) {
@@ -67,7 +94,7 @@ func Greet(ctx context.Context, name string, winnings uint64) (string, error) {
 		return "", ErrInvalidName
 	}
 
-	logger.DefaultLogger.Info(ctx, "Generating greeting for %s with winnings of %d cents", name, winnings)
+	logger.DefaultLogger.Info(ctx, "Generating greeting for '%s'", name)
 
 	// Simulate some processing time to demonstrate context handling
 	select {
@@ -87,9 +114,7 @@ func Greet(ctx context.Context, name string, winnings uint64) (string, error) {
 		// Continue processing
 	}
 
-	// Format currency with two decimal places
-	amount := humanize.CommafWithDigits(float64(winnings)/100.0, 2)
-	message := fmt.Sprintf("Howdy %s! You have won $%s USD!\n", name, amount)
+	message := fmt.Sprintf("Howdy %s!\n", name)
 
 	logger.DefaultLogger.Info(ctx, "Generated greeting: %s", message)
 	return message, nil

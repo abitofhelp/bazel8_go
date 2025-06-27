@@ -28,7 +28,6 @@ func TestGreet(t *testing.T) {
 		name        string
 		ctx         context.Context
 		input       string
-		winnings    uint64
 		expected    string
 		expectedErr error
 		setupCtx    func() (context.Context, context.CancelFunc)
@@ -39,24 +38,21 @@ func TestGreet(t *testing.T) {
 			name:        "valid input",
 			setupCtx:    func() (context.Context, context.CancelFunc) { return context.Background(), func() {} },
 			input:       "John",
-			winnings:    1234567,
-			expected:    "Howdy John! You have won $12,345.67 USD!\n",
+			expected:    "Howdy John!\n",
 			expectedErr: nil,
 		},
 		{
 			name:        "empty name",
 			setupCtx:    func() (context.Context, context.CancelFunc) { return context.Background(), func() {} },
 			input:       "",
-			winnings:    1234567,
 			expected:    "",
 			expectedErr: ErrInvalidName,
 		},
 		{
-			name:        "zero winnings",
+			name:        "another valid input",
 			setupCtx:    func() (context.Context, context.CancelFunc) { return context.Background(), func() {} },
-			input:       "John",
-			winnings:    0,
-			expected:    "Howdy John! You have won $0 USD!\n",
+			input:       "Alice",
+			expected:    "Howdy Alice!\n",
 			expectedErr: nil,
 		},
 		{
@@ -67,7 +63,6 @@ func TestGreet(t *testing.T) {
 				return ctx, cancel
 			},
 			input:       "John",
-			winnings:    1234567,
 			expected:    "",
 			expectedErr: ErrContextCanceled,
 		},
@@ -78,7 +73,6 @@ func TestGreet(t *testing.T) {
 				return ctx, cancel
 			},
 			input:       "John",
-			winnings:    1234567,
 			expected:    "",
 			expectedErr: ErrContextDeadlineExceeded,
 		},
@@ -86,7 +80,6 @@ func TestGreet(t *testing.T) {
 			name:        "context canceled during processing",
 			setupCtx:    func() (context.Context, context.CancelFunc) { return context.WithCancel(context.Background()) },
 			input:       "John",
-			winnings:    1234567,
 			expected:    "",
 			expectedErr: ErrContextCanceled,
 			cancelCtx:   true,
@@ -98,7 +91,6 @@ func TestGreet(t *testing.T) {
 				return context.WithTimeout(context.Background(), 50*time.Millisecond)
 			},
 			input:       "John",
-			winnings:    1234567,
 			expected:    "",
 			expectedErr: ErrContextDeadlineExceeded,
 			cancelCtx:   false,
@@ -113,7 +105,6 @@ func TestGreet(t *testing.T) {
 				return ctx, func() {}
 			},
 			input:       "John",
-			winnings:    1234567,
 			expected:    "",
 			expectedErr: errors.New("custom error"),
 		},
@@ -131,7 +122,7 @@ func TestGreet(t *testing.T) {
 				}()
 			}
 
-			result, err := Greet(ctx, tt.input, tt.winnings)
+			result, err := Greet(ctx, tt.input)
 
 			if tt.expectedErr != nil {
 				assert.Error(t, err)
