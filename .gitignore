@@ -69,3 +69,4 @@ vendor/
 
 # Junie Configuration
 .junie/
+/build/

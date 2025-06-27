@@ -25,15 +25,15 @@ func (c *customErrorContext) Deadline() (deadline time.Time, ok bool) {
 
 func TestGreet(t *testing.T) {
 	tests := []struct {
-		name           string
-		ctx            context.Context
-		input          string
-		winnings       uint64
-		expected       string
-		expectedErr    error
-		setupCtx       func() (context.Context, context.CancelFunc)
-		cancelCtx      bool
-		cancelDelay    time.Duration
+		name        string
+		ctx         context.Context
+		input       string
+		winnings    uint64
+		expected    string
+		expectedErr error
+		setupCtx    func() (context.Context, context.CancelFunc)
+		cancelCtx   bool
+		cancelDelay time.Duration
 	}{
 		{
 			name:        "valid input",
@@ -60,16 +60,23 @@ func TestGreet(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			name:        "canceled context before call",
-			setupCtx:    func() (context.Context, context.CancelFunc) { ctx, cancel := context.WithCancel(context.Background()); cancel(); return ctx, cancel },
+			name: "canceled context before call",
+			setupCtx: func() (context.Context, context.CancelFunc) {
+				ctx, cancel := context.WithCancel(context.Background())
+				cancel()
+				return ctx, cancel
+			},
 			input:       "John",
 			winnings:    1234567,
 			expected:    "",
 			expectedErr: ErrContextCanceled,
 		},
 		{
-			name:        "context with deadline exceeded before call",
-			setupCtx:    func() (context.Context, context.CancelFunc) { ctx, cancel := context.WithTimeout(context.Background(), -time.Second); return ctx, cancel },
+			name: "context with deadline exceeded before call",
+			setupCtx: func() (context.Context, context.CancelFunc) {
+				ctx, cancel := context.WithTimeout(context.Background(), -time.Second)
+				return ctx, cancel
+			},
 			input:       "John",
 			winnings:    1234567,
 			expected:    "",
@@ -86,8 +93,10 @@ func TestGreet(t *testing.T) {
 			cancelDelay: 10 * time.Millisecond, // Cancel after a short delay
 		},
 		{
-			name:        "context deadline exceeded during processing",
-			setupCtx:    func() (context.Context, context.CancelFunc) { return context.WithTimeout(context.Background(), 50*time.Millisecond) },
+			name: "context deadline exceeded during processing",
+			setupCtx: func() (context.Context, context.CancelFunc) {
+				return context.WithTimeout(context.Background(), 50*time.Millisecond)
+			},
 			input:       "John",
 			winnings:    1234567,
 			expected:    "",
@@ -95,13 +104,13 @@ func TestGreet(t *testing.T) {
 			cancelCtx:   false,
 		},
 		{
-			name:        "other context error",
-			setupCtx:    func() (context.Context, context.CancelFunc) { 
+			name: "other context error",
+			setupCtx: func() (context.Context, context.CancelFunc) {
 				// Create a custom context with a custom error
 				ctx := context.WithValue(context.Background(), struct{}{}, "value")
 				// Wrap it with a custom context that returns a custom error
 				ctx = &customErrorContext{ctx, errors.New("custom error")}
-				return ctx, func() {} 
+				return ctx, func() {}
 			},
 			input:       "John",
 			winnings:    1234567,

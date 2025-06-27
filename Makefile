@@ -136,7 +136,7 @@ go-test-pkg:
 
 # Generate test coverage report with Go
 go-test-coverage:
-	@mkdir -p $(COVERAGE_DIR)
+	@mkdir -p $(COVERAGE_DIR)/go
 	$(GO) test ./... -coverprofile=$(COVERAGE_DIR)/go-coverage.out
 	$(GO) tool cover -html=$(COVERAGE_DIR)/go-coverage.out -o $(COVERAGE_DIR)/go/index.html
 	@echo "Coverage report generated at $(COVERAGE_DIR)/go/index.html"

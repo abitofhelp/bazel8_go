@@ -54,7 +54,7 @@ func TestContextLoggerWithContextValues(t *testing.T) {
 	// Test Info logging with request ID
 	ctxLogger.Info(ctx, "test info message")
 	logOutput := buf.String()
-	assert.True(t, strings.Contains(logOutput, "INFO: [request_id=req-123] test info message"), 
+	assert.True(t, strings.Contains(logOutput, "INFO: [request_id=req-123] test info message"),
 		"Info log should contain the request ID: %s", logOutput)
 	buf.Reset()
 
@@ -64,16 +64,16 @@ func TestContextLoggerWithContextValues(t *testing.T) {
 	// Test Warning logging with request ID and user ID
 	ctxLogger.Warning(ctx, "test warning message")
 	logOutput = buf.String()
-	assert.True(t, strings.Contains(logOutput, "WARNING: [request_id=req-123 user_id=user-456] test warning message") || 
-		strings.Contains(logOutput, "WARNING: [user_id=user-456 request_id=req-123] test warning message"), 
+	assert.True(t, strings.Contains(logOutput, "WARNING: [request_id=req-123 user_id=user-456] test warning message") ||
+		strings.Contains(logOutput, "WARNING: [user_id=user-456 request_id=req-123] test warning message"),
 		"Warning log should contain both request ID and user ID: %s", logOutput)
 	buf.Reset()
 
 	// Test Error logging with request ID and user ID
 	ctxLogger.Error(ctx, "test error message")
 	logOutput = buf.String()
-	assert.True(t, strings.Contains(logOutput, "ERROR: [request_id=req-123 user_id=user-456] test error message") || 
-		strings.Contains(logOutput, "ERROR: [user_id=user-456 request_id=req-123] test error message"), 
+	assert.True(t, strings.Contains(logOutput, "ERROR: [request_id=req-123 user_id=user-456] test error message") ||
+		strings.Contains(logOutput, "ERROR: [user_id=user-456 request_id=req-123] test error message"),
 		"Error log should contain both request ID and user ID: %s", logOutput)
 	buf.Reset()
 }
@@ -100,8 +100,8 @@ func TestExtractContextInfo(t *testing.T) {
 	ctx = WithRequestID(ctx, "req-123")
 	ctx = WithUserID(ctx, "user-456")
 	contextInfo := extractContextInfo(ctx)
-	assert.True(t, contextInfo == "[request_id=req-123 user_id=user-456] " || 
-		contextInfo == "[user_id=user-456 request_id=req-123] ", 
+	assert.True(t, contextInfo == "[request_id=req-123 user_id=user-456] " ||
+		contextInfo == "[user_id=user-456 request_id=req-123] ",
 		"Context with both IDs should return formatted string with both values: %s", contextInfo)
 
 	// Test with empty values
