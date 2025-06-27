@@ -4,7 +4,28 @@ An example application demonstrating the use of both Go and Bazel8 build systems
 
 ## Overview
 
-This project showcases how to set up and use both Go's native build system and Bazel8 for building and testing Go applications. It includes a simple greeting package and a command-line application that uses this package. The Go's go.mod file is the source of truth for dependencies in Bazel.
+This project demonstrates how to set up and utilize both Go's native build system and Bazel8 for building and testing Go applications. It includes a simple greeting package and a command-line application that uses this package. The Go's go.mod file is the source of truth for dependencies in Bazel.
+
+The codebase is organized into modular, reusable packages that adhere to the single-responsibility principle.
+
+Key components include:
+
+- **Greeting Package**: Provides functionality for generating personalized greeting messages with formatted monetary amounts. It demonstrates proper error handling, context management, and parameter validation.
+
+- **Logger Package**: Implements a context-aware logger that includes context information in log messages. It provides different logging levels (info, warning, error, fatal) and follows a singleton pattern with a DefaultLogger instance.
+
+- **Command-Line Application**: Serves as the entry point to the functionality provided by the project's packages. It demonstrates proper context handling with cancellation and timeout, signal handling for graceful shutdown, and comprehensive error handling.
+
+The project emphasizes best practices in Go development, including:
+
+- Thorough documentation with godoc comments
+- Comprehensive error handling with custom error types
+- Context-aware operations with proper cancellation and timeout handling
+- Structured logging with different severity levels
+- Clean code principles with clear separation of concerns
+- Extensive test coverage (minimum 80%)
+
+Both Go's native build system and Bazel8 are fully supported, allowing developers to choose the toolchain that best fits their workflow.
 
 ## Features
 
@@ -33,7 +54,7 @@ This project showcases how to set up and use both Go's native build system and B
    ```bash
    # Build the project
    bazel build //...
-
+   
    # Run the application
    bazel run //cmd:main
    ```
@@ -42,7 +63,7 @@ This project showcases how to set up and use both Go's native build system and B
    ```bash
    # Run directly without creating an executable
    go run cmd/main.go
-
+   
    # Or build an executable and then run it
    go build -o main cmd/main.go
    ./main
