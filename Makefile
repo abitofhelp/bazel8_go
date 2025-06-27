@@ -176,7 +176,7 @@ go-mod-verify:
 
 # Generate and display documentation
 go-doc:
-	$(GO) doc -all ./...
+	$(GO) doc -all github.com/abitofhelp/bazel8_go/...
 
 # Start a documentation server
 go-doc-server:

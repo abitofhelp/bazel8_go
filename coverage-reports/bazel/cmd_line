@@ -1,0 +1,1 @@
+genhtml -o coverage-reports/bazel /private/var/tmp/_bazel_mike/00ed125b679f21d3dbf2dc4f2e8e7a3e/execroot/_main/bazel-out/_coverage/_coverage_report.dat

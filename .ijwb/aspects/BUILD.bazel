@@ -3,9 +3,9 @@
 # The final form of the BUILD file accessed at runtime as an external WORKSPACE.
 #
 
-load(":flag_hack.bzl", "define_flag_hack")
-
 licenses(["notice"])  # Apache 2.0
+
+load(":flag_hack.bzl", "define_flag_hack")
 
 exports_files([
     "tools/PackageParser_deploy.jar",
