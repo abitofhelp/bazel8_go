@@ -1,6 +1,9 @@
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@gazelle//:def.bzl", "gazelle")
 
+# Workspace visibility
+package(default_visibility = ["//visibility:public"])
+
 # Gazelle configuration
 # gazelle:prefix github.com/abitofhelp/bazel8_go
 # gazelle:go_naming_convention go_default_library
@@ -29,23 +32,34 @@ buildifier(
     ],
     lint_mode = "warn",
     mode = "check",
-    verbose = True,
+    #verbose = True,
 )
 
 buildifier(
     name = "buildifier.fix",
+    diff_command = "diff",
+    exclude_patterns = [
+        "./bazel-*",
+        "./git/*",
+        "./vendor/*",
+    ],
+    lint_mode = "fix",
+    mode = "fix",
+    #verbose = True,
+)
+
+buildifier(
+    name = "buildifier.diff",
+    diff_command = "diff",
     exclude_patterns = [
         "./bazel-*",
         "./git/*",
         "./vendor/*",
     ],
     lint_mode = "warn",
-    mode = "fix",
-    verbose = True,
+    mode = "diff",
+    #verbose = True,
 )
-
-# Workspace visibility
-package(default_visibility = ["//visibility:public"])
 
 # Export go.mod for dependency resolution
 exports_files([

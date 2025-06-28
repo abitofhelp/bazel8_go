@@ -1,0 +1,5 @@
+bazel-bazel8_go
+bazel-bin
+bazel-out
+bazel-testlogs
+.git

@@ -4,6 +4,8 @@ load(
     "@bazel_tools//tools/build_defs/cc:action_names.bzl",
     "ACTION_NAMES",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     ":artifacts.bzl",
     "artifact_location",
@@ -13,15 +15,15 @@ load(
     "struct_omit_none",
     "to_artifact_location",
 )
+load(":cc_info.bzl", "CC_USE_GET_TOOL_FOR_ACTION")
 load(":code_generator_info.bzl", "CODE_GENERATOR_RULE_NAMES")
 load(":flag_hack.bzl", "FlagHackInfo")
-load(":java_info.bzl", "get_java_info", "java_info_in_target", "java_info_reference", "get_provider_from_target")
+load(":java_info.bzl", "get_java_info", "get_provider_from_target", "java_info_in_target", "java_info_reference")
 load(
     ":make_variables.bzl",
     "expand_make_variables",
 )
 load(":python_info.bzl", "get_py_info", "py_info_in_target")
-load(":cc_info.bzl", "CC_USE_GET_TOOL_FOR_ACTION")
 
 IntelliJInfo = provider(
     doc = "Collected information about the targets visited by the aspect.",

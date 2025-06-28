@@ -1,0 +1,5 @@
+# MacOS Configuration - Not needed for Linux and CICD.
+build:macos --apple_platform_type=macos
+build:macos --macos_minimum_os=11.0
+build:macos --host_macos_minimum_os=11.0
+build --config=pure

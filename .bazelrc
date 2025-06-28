@@ -1,17 +1,443 @@
-# Use bzlmod for external dependencies
-common --enable_bzlmod
+#############################################################################
+# Bazel Configuration File (.bazelrc)
+# For Bazel 8 with Go and Rust Support
+#############################################################################
+#
+# This file configures how Bazel builds, tests, and runs your code.
+# It's loaded automatically by Bazel when you run any Bazel command.
+#
+# QUICK START FOR DEVELOPERS:
+#
+# For daily development:
+#   bazel build --config=dev //...     # Fast builds with caching
+#   bazel test --config=dev //...      # Run tests with full output
+#
+# For debugging:
+#   bazel build --config=debug //...   # Build with debug symbols
+#   bazel test --config=debug //...    # Tests with extended timeouts
+#
+# For releases:
+#   bazel build --config=release //... # Optimized production builds
+#
+# For CI/CD:
+#   bazel test --config=ci //...       # Configured for CI systems
+#
+# HOW THIS FILE WORKS:
+# - Lines starting with '#' are comments
+# - 'build' lines apply to: build, test, run, query, etc.
+# - 'test' lines apply only to: test, coverage
+# - 'build:name' creates a configuration you can use with --config=name
+# - Options are processed in order, so later options override earlier ones
+#
+#############################################################################
 
-# Go specific settings
-build --experimental_platforms_api
-build --experimental_cc_shared_library
+#############################################################################
+# Core Build Configuration
+#############################################################################
+# These settings apply to all Bazel commands (build, test, run, etc.)
 
-# Buildifier settings
-build --output_groups=+buildifier_outputs
+# Enable Bzlmod - Bazel's new dependency management system
+# This replaces the old WORKSPACE file approach
+# Learn more: https://bazel.build/external/module
+build --enable_bzlmod
 
-# Test settings
-test --test_output=errors
-test --test_verbose_timeout_warnings
+# Enable platform-based toolchain resolution
+# This helps Bazel automatically select the right compiler for your OS
+build --incompatible_enable_cc_toolchain_resolution
+build --incompatible_enable_proto_toolchain_resolution
 
-# Use go.mod as the source of truth for dependencies
-# This option is no longer needed with bzlmod.
-# build --@rules_go//go/config:external=external
+# Use platforms API for better cross-platform support
+# This ensures builds work correctly on both macOS and Linux
+build --host_platform=@local_config_platform//:host
+
+# Java configuration (required for some Bazel tools, even if you don't write Java)
+# Uses Java 21 from Bazel's remote repository (no local install needed)
+build --java_runtime_version=remotejdk_21
+build --tool_java_runtime_version=remotejdk_21
+
+#############################################################################
+# Go Configuration
+#############################################################################
+# Settings specific to building Go code
+
+#############################################################################
+# Go Configuration
+#############################################################################
+# Settings specific to building Go code
+
+# Pure mode compilation (no CGO) - makes binaries more portable
+# This is controlled per-target with the 'pure' attribute or globally with:
+# --@rules_go//go/config:pure
+# Note: Some packages require CGO and won't work in pure mode
+
+# Race detector configuration - finds data races in concurrent code
+# Usage: bazel test --@rules_go//go/config:race //...
+# Note: This makes tests slower but catches concurrency bugs
+
+# Static linking configuration
+# Usage: bazel build --@rules_go//go/config:static //...
+# Note: This doesn't work on macOS (causes crt0.o errors)
+
+# Go build tags
+# Usage: bazel build --@rules_go//go/config:tags=integration,e2e //...
+
+# Common Go configurations as named configs for convenience:
+
+# Pure Go build (no CGO)
+build:pure --@rules_go//go/config:pure
+
+# Enable race detection
+build:race --@rules_go//go/config:race
+
+# Enable static linking (Linux only)
+build:static --@rules_go//go/config:static
+
+# Debug mode for Go
+build:godebug --@rules_go//go/config:debug
+
+#############################################################################
+# Rust Configuration
+#############################################################################
+# Settings specific to building Rust code
+
+# Pipelined compilation - Rust compiler can start working before dependencies finish
+# This speeds up builds significantly
+#build --@rules_rust//rust/settings:pipelined_compilation=True
+
+# JSON error format - makes errors parseable by IDEs (VS Code, IntelliJ)
+#build --@rules_rust//rust/settings:error_format=json
+
+# Enable Clippy (Rust's linter) with strict settings
+# This catches common mistakes and suggests improvements
+# -D means "deny" (treat as errors), warnings = all compiler warnings
+#build --@rules_rust//rust/settings:clippy_flags=-D,warnings,-D,clippy::all
+
+# Use stable Rust (not nightly) for reliability
+#build --@rules_rust//rust/toolchain:channel=stable
+
+#############################################################################
+# Platform-Specific Configuration
+#############################################################################
+# Different settings for macOS vs Linux
+
+# macOS specific settings
+build:macos --apple_platform_type=macos
+build:macos --macos_minimum_os=11.0
+build:macos --host_macos_minimum_os=11.0
+# IMPORTANT: Static linking doesn't work on macOS (causes "crt0.o not found" errors)
+build:macos --features=-fully_static_link
+
+# Linux specific settings
+# Linux supports fully static binaries (no external dependencies)
+build:linux --features=fully_static_link
+build:linux --@rules_go//go/config:static
+
+# Automatically detect and use the right platform config
+build --enable_platform_specific_config
+
+#############################################################################
+# Performance Optimization
+#############################################################################
+# Make builds faster and use resources efficiently
+
+# Parallel execution - use all available CPU cores
+# 'auto' means Bazel decides based on your system
+build --jobs=auto
+# Use 75% of system resources to leave some for your OS and other programs
+build --local_resources=cpu=HOST_CPUS*0.75
+build --local_resources=memory=HOST_RAM*0.75
+
+# Remote caching - share build results across team/CI
+# Uncomment and configure these lines if you have a cache server:
+# build --remote_cache=grpc://cache.example.com:9092
+# build --remote_upload_local_results=true
+# build --remote_timeout=3600
+
+# Local disk cache - reuse build results between runs
+# Located in ~/.cache/bazel-disk-cache
+build --disk_cache=~/.cache/bazel-disk-cache
+
+# Repository cache - cache downloaded dependencies
+build --repository_cache=~/.cache/bazel-repository-cache
+
+# Execution strategies - how Bazel runs different types of actions
+build --spawn_strategy=local          # Run most things locally
+build --strategy=Javac=worker        # Java compilation in persistent workers
+build --strategy=Closure=worker      # JavaScript compilation in persistent workers
+build --strategy=Genrule=sandboxed   # Custom rules in sandboxes for isolation
+
+# Worker configuration - persistent processes that handle multiple requests
+# Speeds up Java/JS compilation significantly
+build --worker_max_instances=4       # Max 4 worker processes
+build --worker_quit_after_build      # Clean up workers when done
+
+# Memory management - prevent out-of-memory crashes
+build --heap_dump_on_oom                          # Create heap dump if OOM
+
+#############################################################################
+# Build Output Configuration
+#############################################################################
+# Control what you see in the terminal
+
+# Show timestamps for each action (helps identify slow steps)
+build --show_timestamps
+# Limit progress updates to every 5 seconds (reduces noise)
+build --show_progress_rate_limit=5
+# Use terminal features for better display
+build --curses=yes
+build --color=yes
+# Assume standard terminal width
+build --terminal_columns=143
+
+# Filter out noisy messages
+# -info and -debug remove low-priority messages
+build --ui_event_filters=-info,-debug
+# Don't show the loading phase progress
+build --noshow_loading_progress
+# Show up to 20 build results at the end
+build --show_result=20
+
+# Symlink configuration - where Bazel puts output links
+# Creates bazel-bin, bazel-out, etc. in your workspace
+build --symlink_prefix=bazel-
+build --experimental_convenience_symlinks=normal
+
+# Build event protocol - creates JSON file with build information
+# Useful for build analysis and CI integration
+build --build_event_json_file=bazel-build-events.json
+build --build_event_publish_all_actions=false
+
+# Logging and debugging
+build --logging=6                    # Log level (0=ERROR to 10=DEBUG)
+build --subcommands=pretty_print     # Show commands Bazel runs
+build --verbose_failures             # Show full command line when something fails
+
+#############################################################################
+# Compilation and Linking
+#############################################################################
+# C++ compiler settings (affects CGO and native dependencies)
+
+# Use C++17 standard
+build --cxxopt=-std=c++17
+build --host_cxxopt=-std=c++17
+# Always use colored compiler output
+build --copt=-fdiagnostics-color=always
+
+# Suppress specific warnings that cause issues with Go's CGO on macOS
+build --copt=-Wno-unused-parameter
+
+# Default: no debug symbols (smaller binaries)
+build --copt=-g0
+build --linkopt=-Wl,-S
+
+# Debug config: include debug symbols
+build:debug --copt=-g
+build:debug --linkopt=-Wl
+build:debug --strip=never
+
+# Optimization levels
+build:opt --copt=-O2              # Good optimization
+build:opt --copt=-DNDEBUG         # Disable assertions
+build:opt --linkopt=-Wl,-O1       # Optimize linking
+build:fastbuild --copt=-O0        # No optimization (fastest compilation)
+
+# Security hardening - makes binaries more secure
+build:hardened --copt=-fstack-protector-strong    # Protect against stack overflows
+build:hardened --copt=-D_FORTIFY_SOURCE=2         # Runtime buffer overflow detection
+build:hardened --linkopt=-Wl,-z,relro,-z,now      # Protect GOT/PLT
+
+#############################################################################
+# Testing Configuration
+#############################################################################
+# Settings for 'bazel test' command
+
+# Test output settings
+test --test_output=errors            # Only show output for failed tests
+test --test_summary=terse            # Compact test summary
+test --test_verbose_timeout_warnings # Warn about slow tests
+
+# Run tests in parallel
+test --local_test_jobs=auto
+
+# Environment variables available to tests
+# Add more with: test --test_env=MY_VAR
+test --test_env=PATH
+test --test_env=HOME
+test --test_env=USER
+test --test_env=TMPDIR
+
+# Test timeouts in seconds: short, moderate, long, eternal
+# Tests can declare their size: size = "small", "medium", "large", "enormous"
+test --test_timeout=300,600,900,3600
+
+# Test sharding - split large tests across multiple processes
+test --test_sharding_strategy=explicit
+
+# Retry flaky tests automatically
+# Helps with tests that occasionally fail due to timing issues
+test --flaky_test_attempts=3
+
+# Cache test results - don't rerun unchanged tests
+test --cache_test_results=auto
+
+# Output for CI systems
+test --test_output=streamed
+test --experimental_announce_profile_path
+
+#############################################################################
+# Coverage Configuration
+#############################################################################
+# Settings for 'bazel coverage' command (measures code coverage)
+
+# Which files to measure coverage for
+# "^//[^:]" means all targets in this workspace (excludes external deps)
+coverage --instrumentation_filter="^//[^:]"
+coverage --instrument_test_targets=false
+
+# Output format - LCOV is widely supported by coverage tools
+coverage --combined_report=lcov
+coverage --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main
+coverage --experimental_fetch_all_coverage_outputs
+
+# Go coverage
+# Note: Go coverage format is controlled per-target, not via command line flags
+
+# Rust coverage - use LLVM's coverage instrumentation
+#coverage --@rules_rust//rust/settings:rustc_flags="-Cinstrument-coverage"
+#coverage --@rules_rust//rust/settings:experimental_use_coverage_metadata_files=True
+
+#############################################################################
+# Analysis Configuration
+#############################################################################
+# Static analysis and warnings
+
+# Enable all compiler warnings
+build --copt=-Wall          # Basic warnings
+build --copt=-Wextra        # Extra warnings
+build --host_copt=-Wall
+build --host_copt=-Wextra
+
+# Static analysis configuration (requires custom aspect)
+# Usage: bazel build --config=lint //...
+build:lint --aspects=//tools/lint:lint.bzl%lint_aspect
+build:lint --output_groups=+lint_checks
+
+#############################################################################
+# Release Configuration
+#############################################################################
+# Settings for production builds
+# Usage: bazel build --config=release //...
+
+build:release --compilation_mode=opt    # Maximum optimization
+build:release --strip=always            # Remove debug symbols
+build:release --copt=-O3                # Aggressive optimization
+build:release --linkopt=-Wl,-O2         # Optimize linking
+build:release --stamp                   # Embed version info
+# Requires tools/workspace_status.sh script to provide version info
+build:release --workspace_status_command=tools/workspace_status.sh
+
+#############################################################################
+# Development Configurations
+#############################################################################
+# Convenient configurations for different development scenarios
+
+# Fast iteration during development
+# Usage: bazel build --config=dev //...
+build:dev --compilation_mode=fastbuild  # Fastest compilation
+build:dev --disk_cache=~/.cache/bazel-disk-cache
+build:dev --test_output=all            # Show all test output
+
+# Debug configuration - for using debuggers (gdb, lldb)
+# Usage: bazel build --config=debug //...
+build:debug --compilation_mode=dbg      # Debug mode
+build:debug --copt=-O0                  # No optimization
+build:debug --test_timeout=9999         # Very long timeout for debugging
+
+# Address sanitizer - detects memory errors
+# Usage: bazel test --config=asan //...
+# Note: Makes programs ~2x slower
+build:asan --copt=-fsanitize=address
+build:asan --copt=-fno-omit-frame-pointer
+build:asan --linkopt=-fsanitize=address
+build:asan --test_env=ASAN_OPTIONS=detect_leaks=1:check_initialization_order=1:strict_init_order=1
+
+# Thread sanitizer - detects data races
+# Usage: bazel test --config=tsan //...
+# Note: Makes programs ~5-15x slower
+build:tsan --copt=-fsanitize=thread
+build:tsan --linkopt=-fsanitize=thread
+build:tsan --test_env=TSAN_OPTIONS=halt_on_error=1:second_deadlock_stack=1
+
+# Memory sanitizer - detects use of uninitialized memory (Linux only)
+# Usage: bazel test --config=msan //...
+build:msan --copt=-fsanitize=memory
+build:msan --linkopt=-fsanitize=memory
+build:msan --test_env=MSAN_OPTIONS=poison_in_dtor=1
+
+#############################################################################
+# CI Configuration
+#############################################################################
+# Settings optimized for continuous integration systems
+# Usage: bazel test --config=ci //...
+
+build:ci --show_timestamps                        # Always show times
+build:ci --test_output=errors                     # Only failed test output
+build:ci --test_summary=detailed                  # Detailed summary for CI logs
+build:ci --experimental_convenience_symlinks=ignore # Don't create symlinks
+build:ci --heap_dump_on_oom                       # Help debug CI OOMs
+build:ci --build_event_json_file=build_events.json # For CI analysis
+build:ci --test_output=streamed                   # Stream test output
+build:ci --remote_upload_local_results=false      # Don't upload from CI
+
+#############################################################################
+# Common Use Cases - Quick Reference
+#############################################################################
+#
+# DAILY DEVELOPMENT:
+#   bazel build --config=dev //...          # Fast builds
+#   bazel test --config=dev //...           # Run tests
+#   bazel run --config=dev //cmd/myapp      # Run a binary
+#
+# DEBUGGING:
+#   bazel build --config=debug //...        # Build with debug symbols
+#   bazel test --config=debug //... --test_arg=-test.v  # Verbose test output
+#   bazel test --config=debug //path/to:test --test_filter=TestName
+#
+# FINDING BUGS:
+#   bazel test --config=race //...          # Find data races (Go)
+#   bazel test --config=asan //...          # Find memory errors
+#   bazel test --config=tsan //...          # Find threading issues
+#
+# BENCHMARKING:
+#   bazel run --config=opt //...            # Run optimized builds
+#   bazel test --config=opt //... --test_arg=-test.bench=.
+#
+# RELEASES:
+#   bazel build --config=release //...      # Production builds
+#   bazel test --config=release //...       # Test release builds
+#
+# CI/CD:
+#   bazel test --config=ci //...            # Run all tests
+#   bazel coverage --config=ci //...        # Generate coverage reports
+#
+# COMMON FLAGS:
+#   --test_filter=regex     # Run specific tests matching regex
+#   --test_arg=arg          # Pass arguments to test binaries
+#   --sandbox_debug         # Debug sandbox issues
+#   --subcommands          # See all commands Bazel runs
+#   --keep_going           # Continue building despite errors
+#   -c opt/dbg/fastbuild   # Set compilation mode directly
+#
+#############################################################################
+
+#############################################################################
+# User-specific Configuration
+#############################################################################
+# Create a .bazelrc.user file in the workspace root for personal settings
+# This file is gitignored and won't affect other developers
+# Example .bazelrc.user:
+#   build --disk_cache=/my/faster/disk/cache
+#   test --test_output=all
+#
+# This import must be last so user settings override everything else
+try-import %workspace%/.bazelrc.user

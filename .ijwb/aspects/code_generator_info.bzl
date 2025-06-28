@@ -6,10 +6,10 @@
 # logic that integrates with this constant.
 
 CODE_GENERATOR_RULE_NAMES = struct(
-# TEMPLATE-INCLUDE-BEGIN
+    # TEMPLATE-INCLUDE-BEGIN
     generic = [
     ],
     go = [
     ],
-# TEMPLATE-INCLUDE-END
+    # TEMPLATE-INCLUDE-END
 )

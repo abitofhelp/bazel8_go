@@ -1,0 +1,72 @@
+## Build configuration
+#build --enable_bzlmod
+## Repo reports not needed due to a fix.
+## build --incompatible_enable_cc_toolchain_resolution
+#build --java_runtime_version=remotejdk_21
+
+# Go specific settings
+# Static linking is disabled to avoid linker errors on macOS
+# Error: "library not found for -lcrt0.o" when using static linking on macOS
+# build --@rules_go//go/config:static
+build --experimental_platforms_api
+build --experimental_cc_shared_library
+
+# Performance optimizations
+#build --jobs=auto
+#build --local_resources=memory=HOST_RAM*0.75
+#build --local_resources=cpu=HOST_CPUS
+
+# Output configuration
+#build --symlink_prefix=bazel-
+#build --color=yes
+
+# Test configuration
+#test --test_output=errors
+#test --test_summary=detailed
+#test --test_verbose_timeout_warnings
+
+# Coverage
+#coverage --combined_report=lcov
+#coverage --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main
+
+# Use go.mod as the source of truth for dependencies
+# This option is no longer needed with bzlmod.
+# build --@rules_go//go/config:external=external
+
+
+==============
+
+# Junie Generated
+## Build configuration
+#build - -enable_bzlmod
+#build - -java_runtime_version = remotejdk_21
+#build - -experimental_platforms_api
+#build - -experimental_cc_shared_library
+#build - -jobs = auto
+#build - -color = yes
+#
+## Test configuration
+#test - -test_output = errors
+#test - -test_summary = detailed
+#test - -test_verbose_timeout_warnings
+#test - -flaky_test_attempts = 3
+#test - -build_tests_only
+#
+## Coverage
+#coverage - -combined_report = lcov
+#coverage - -instrument_test_targets
+#
+## Rust configuration (uncomment when adding Rust to the project)
+## build --aspects=@rules_rust//rust:defs.bzl%rust_clippy_aspect
+## build --output_groups=clippy_checks
+#
+## Platform-specific configurations
+## Use these with --config=linux or --config=macos or --config=macos_arm64
+## build:linux --cpu=k8
+## build:macos --cpu=darwin
+## build:macos_arm64 --cpu=darwin_arm64
+#
+## Debug and release configurations
+## build:debug --compilation_mode=dbg
+## build:release --compilation_mode=opt
+

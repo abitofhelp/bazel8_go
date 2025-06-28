@@ -16,7 +16,7 @@ go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.from_file(go_mod = "//:go.mod")
 use_repo(go_sdk, "go_toolchains")
 
-# Go dependencies configuration
+# Gazelle extension for Go module dependencies
 # The go_deps extension parses the go.mod file directly, so external tooling
 # such as gazelle update-repos is no longer needed.
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")

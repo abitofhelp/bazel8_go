@@ -20,6 +20,7 @@ go.work
 
 # Bazel
 /bazel-*
+.bazelrc.user
 
 # macOS specific
 .DS_Store

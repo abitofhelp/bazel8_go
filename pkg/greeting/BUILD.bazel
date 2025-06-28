@@ -8,10 +8,7 @@ go_library(
     ],
     importpath = "github.com/abitofhelp/bazel8_go/pkg/greeting",
     visibility = ["//visibility:public"],
-    deps = [
-        "//pkg/logger:go_default_library",
-        "@com_github_dustin_go_humanize//:go_default_library",
-    ],
+    deps = ["//pkg/logger:go_default_library"],
 )
 
 go_test(

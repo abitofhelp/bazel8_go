@@ -97,4 +97,3 @@ intellij_info_aspect = make_intellij_info_aspect(
     semantics,
 )
 # TEMPLATE-INCLUDE-END
-

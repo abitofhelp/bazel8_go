@@ -14,6 +14,7 @@
         bazel-build bazel-build-opt bazel-build-dbg bazel-run bazel-test bazel-test-pkg \
         bazel-test-coverage bazel-clean bazel-clean-all bazel-mod-tidy bazel-gazelle \
         bazel-query-deps bazel-query-all bazel-buildifier-check bazel-buildifier-fix \
+        bazel-build-dev-all bazel-test-dev-all bazel-build-debug-all bazel-test-debug-all bazel-build-release-all bazel-test-ci-all \
         go-build go-run go-test go-test-pkg go-test-coverage go-clean go-mod-tidy \
         go-mod-vendor go-mod-verify go-doc go-doc-server go-version go-fmt go-vet go-generate-mocks
 
@@ -40,13 +41,61 @@ all: build
 bazel-build:
 	$(BAZEL) build //cmd:main
 
-# Build the main binary with Bazel in optimized mode
-bazel-build-opt:
-	$(BAZEL) build --compilation_mode=opt //cmd:main
+# Build with debug configuration (for debugging)
+bazel-build-debug-all:
+	$(BAZEL) build --config=debug //...
 
 # Build the main binary with Bazel in debug mode
 bazel-build-dbg:
 	$(BAZEL) build --compilation_mode=dbg //cmd:main
+
+# Build with dev configuration (for daily development)
+bazel-build-dev-all:
+	$(BAZEL) build --config=dev //...
+
+# Build the main binary with Bazel in optimized mode
+bazel-build-opt:
+	$(BAZEL) build --compilation_mode=opt //cmd:main
+
+# Build with release configuration (for production)
+bazel-build-release-all:
+	$(BAZEL) build --config=release //...
+
+# Check BUILD files with buildifier
+bazel-buildifier-check:
+	$(BAZEL) run //:buildifier.check
+
+# Show differences in BUILD files with buildifier
+bazel-buildifier-diff:
+	$(BAZEL) run //:buildifier.diff
+
+# Fix BUILD files with buildifier
+bazel-buildifier-fix:
+	$(BAZEL) run //:buildifier.fix
+
+# Clean Bazel build artifacts
+bazel-clean:
+	$(BAZEL) clean
+
+# Clean all Bazel cache (more thorough)
+bazel-clean-all:
+	$(BAZEL) clean --expunge
+
+# Run Gazelle to update BUILD files
+bazel-gazelle:
+	$(BAZEL) run //:gazelle
+
+# Update Bazel dependencies using bzlmod
+bazel-mod-tidy:
+	$(BAZEL) mod tidy
+
+# Show all targets in the workspace
+bazel-query-all:
+	$(BAZEL) query "//..." --output label_kind
+
+# Show dependencies of the main binary
+bazel-query-deps:
+	$(BAZEL) query "deps(//cmd:main)" --output label_kind
 
 # Run the main binary with Bazel
 bazel-run:
@@ -56,9 +105,9 @@ bazel-run:
 bazel-test:
 	$(BAZEL) test //...
 
-# Run tests in the pkg directory with Bazel
-bazel-test-pkg:
-	$(BAZEL) test //pkg/...
+# Run tests with CI configuration (for CI/CD systems)
+bazel-test-ci-all:
+	$(BAZEL) test --config=ci //...
 
 # Generate test coverage report with Bazel
 bazel-test-coverage:
@@ -83,38 +132,17 @@ bazel-test-coverage:
 	genhtml -o $(COVERAGE_DIR)/bazel "$(shell $(BAZEL) info output_path)/_coverage/_coverage_report.dat"
 	@echo "Coverage report generated at $(COVERAGE_DIR)/bazel/index.html"
 
-# Clean Bazel build artifacts
-bazel-clean:
-	$(BAZEL) clean
+# Run tests with debug configuration (for debugging)
+bazel-test-debug-all:
+	$(BAZEL) test --config=debug //...
 
-# Clean all Bazel cache (more thorough)
-bazel-clean-all:
-	$(BAZEL) clean --expunge
+# Run tests with dev configuration (for daily development)
+bazel-test-dev-all:
+	$(BAZEL) test --config=dev //...
 
-# Using bzlmod for dependency management
-# Update Bazel dependencies using bzlmod
-bazel-mod-tidy:
-	$(BAZEL) mod tidy
-
-# Run Gazelle to update BUILD files
-bazel-gazelle:
-	$(BAZEL) run //:gazelle
-
-# Show dependencies of the main binary
-bazel-query-deps:
-	$(BAZEL) query "deps(//cmd:main)" --output label_kind
-
-# Show all targets in the workspace
-bazel-query-all:
-	$(BAZEL) query "//..." --output label_kind
-
-# Check BUILD files with buildifier
-bazel-buildifier-check:
-	$(BAZEL) run //:buildifier.check
-
-# Fix BUILD files with buildifier
-bazel-buildifier-fix:
-	$(BAZEL) run //:buildifier.fix
+# Run tests in the pkg directory with Bazel
+bazel-test-pkg:
+	$(BAZEL) test //pkg/...
 
 # Go commands
 # Build the main binary with Go
@@ -122,32 +150,26 @@ go-build:
 	@mkdir -p $(BUILD_DIR)
 	$(GO) build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PKG)
 
-# Run the main binary with Go
-go-run:
-	$(GO) run $(MAIN_PKG)
+# Clean Go build artifacts
+go-clean:
+	rm -f $(BINARY_NAME)
+	rm -rf $(BUILD_DIR)
+	rm -rf $(COVERAGE_DIR)
 
-# Run all tests with Go
-go-test:
-	$(GO) test ./...
+# Generate and display documentation
+go-doc:
+	$(GO) doc -all github.com/abitofhelp/bazel8_go/...
 
-# Run tests in the pkg directory with Go
-go-test-pkg:
-	$(GO) test ./pkg/...
-
-# Generate test coverage report with Go
-go-test-coverage:
-	@mkdir -p $(COVERAGE_DIR)/go
-	$(GO) test ./... -coverprofile=$(COVERAGE_DIR)/go-coverage.out
-	$(GO) tool cover -html=$(COVERAGE_DIR)/go-coverage.out -o $(COVERAGE_DIR)/go/index.html
-	@echo "Coverage report generated at $(COVERAGE_DIR)/go/index.html"
+# Start a documentation server
+go-doc-server:
+	@echo "Starting Go documentation server at http://localhost:6060"
+	@echo "Press Ctrl+C to stop"
+	$(GO) install golang.org/x/tools/cmd/godoc@latest
+	godoc -http=:6060
 
 # Format Go code
 go-fmt:
 	$(GO) fmt ./...
-
-# Run Go static analysis
-go-vet:
-	$(GO) vet ./...
 
 # Generate mocks for Go interfaces
 go-generate-mocks:
@@ -155,12 +177,6 @@ go-generate-mocks:
 	$(GO) install github.com/golang/mock/mockgen@latest
 	@find . -name "*.go" -not -path "*/vendor/*" -not -path "*/mock/*" | xargs grep -l "//go:generate mockgen" | xargs -I{} dirname {} | sort -u | xargs -I{} sh -c 'echo "Processing {}..." && cd {} && $(GO) generate'
 	@echo "Mocks generated successfully"
-
-# Clean Go build artifacts
-go-clean:
-	rm -f $(BINARY_NAME)
-	rm -rf $(BUILD_DIR)
-	rm -rf $(COVERAGE_DIR)
 
 # Update Go dependencies
 go-mod-tidy:
@@ -174,16 +190,28 @@ go-mod-vendor:
 go-mod-verify:
 	$(GO) mod verify
 
-# Generate and display documentation
-go-doc:
-	$(GO) doc -all github.com/abitofhelp/bazel8_go/...
+# Run the main binary with Go
+go-run:
+	$(GO) run $(MAIN_PKG)
 
-# Start a documentation server
-go-doc-server:
-	@echo "Starting Go documentation server at http://localhost:6060"
-	@echo "Press Ctrl+C to stop"
-	$(GO) install golang.org/x/tools/cmd/godoc@latest
-	godoc -http=:6060
+# Run all tests with Go
+go-test:
+	$(GO) test ./...
+
+# Generate test coverage report with Go
+go-test-coverage:
+	@mkdir -p $(COVERAGE_DIR)/go
+	$(GO) test ./... -coverprofile=$(COVERAGE_DIR)/go-coverage.out
+	$(GO) tool cover -html=$(COVERAGE_DIR)/go-coverage.out -o $(COVERAGE_DIR)/go/index.html
+	@echo "Coverage report generated at $(COVERAGE_DIR)/go/index.html"
+
+# Run tests in the pkg directory with Go
+go-test-pkg:
+	$(GO) test ./pkg/...
+
+# Run Go static analysis
+go-vet:
+	$(GO) vet ./...
 
 # Display Go version information
 go-version:
@@ -194,23 +222,11 @@ go-version:
 # Build with both Bazel and Go
 build: bazel-build go-build
 
-# Build with optimized mode
-build-opt: bazel-build-opt go-build
-
 # Build with debug mode
 build-dbg: bazel-build-dbg go-build
 
-# Run the application with Bazel
-run: bazel-run
-
-# Run tests with Bazel
-test: bazel-test
-
-# Run tests only for pkg directory with both Bazel and Go
-test-pkg: bazel-test-pkg go-test-pkg
-
-# Generate and view test coverage
-test-coverage: bazel-test-coverage go-test-coverage
+# Build with optimized mode
+build-opt: bazel-build-opt go-build
 
 # Clean build artifacts
 clean: bazel-clean go-clean
@@ -218,20 +234,8 @@ clean: bazel-clean go-clean
 # Clean all build cache (more thorough)
 clean-all: bazel-clean-all go-clean
 
-# Check code style and quality
-lint: bazel-buildifier-check go-fmt go-vet
-
-# Fix code style issues
-fix: bazel-buildifier-fix go-fmt
-
 # Update dependencies
 deps: bazel-mod-tidy go-mod-tidy
-
-# Verify module integrity
-verify: go-mod-verify
-
-# Show all targets in the workspace
-query: bazel-query-all
 
 # Generate and display documentation
 doc: go-doc
@@ -239,11 +243,35 @@ doc: go-doc
 # Start a documentation server
 doc-server: go-doc-server
 
-# Display version information
-version: go-version
+# Fix code style issues
+fix: bazel-buildifier-fix go-fmt
+
+# Check code style and quality
+lint: bazel-buildifier-check go-fmt go-vet
 
 # Generate mocks for testing
 mocks: go-generate-mocks
+
+# Show all targets in the workspace
+query: bazel-query-all
+
+# Run the application with Bazel
+run: bazel-run
+
+# Run tests with Bazel
+test: bazel-test
+
+# Generate and view test coverage
+test-coverage: bazel-test-coverage go-test-coverage
+
+# Run tests only for pkg directory with both Bazel and Go
+test-pkg: bazel-test-pkg go-test-pkg
+
+# Verify module integrity
+verify: go-mod-verify
+
+# Display version information
+version: go-version
 
 # Help command
 help:
@@ -279,6 +307,9 @@ help:
 	@echo "  bazel-build       Build with Bazel"
 	@echo "  bazel-build-dbg   Build with Bazel in debug mode"
 	@echo "  bazel-build-opt   Build with Bazel in optimized mode"
+	@echo "  bazel-build-dev-all   Build with dev configuration (fast builds with caching)"
+	@echo "  bazel-build-debug-all Build with debug configuration (debug symbols)"
+	@echo "  bazel-build-release-all Build with release configuration (optimized production builds)"
 	@echo "  bazel-buildifier-check  Check BUILD files"
 	@echo "  bazel-buildifier-fix    Fix BUILD files"
 	@echo "  bazel-clean       Clean Bazel artifacts"
@@ -290,6 +321,9 @@ help:
 	@echo "  bazel-run         Run with Bazel"
 	@echo "  bazel-test        Test all targets with Bazel"
 	@echo "  bazel-test-coverage Generate and view test coverage with Bazel"
+	@echo "  bazel-test-dev-all    Run tests with dev configuration (full output)"
+	@echo "  bazel-test-debug-all  Run tests with debug configuration (extended timeouts)"
+	@echo "  bazel-test-ci-all     Run tests with CI configuration (for CI systems)"
 	@echo "  bazel-test-pkg    Test only pkg directory with Bazel"
 	@echo ""
 	@echo "Go Specific Targets:"
