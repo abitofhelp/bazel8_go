@@ -12,6 +12,10 @@ The packages in this directory are designed to be modular, reusable components t
 
 The [greeting](./greeting/README.md) package provides functionality for generating personalized greeting messages.
 
+### Logger
+
+The [logger](./logger/README.md) package provides logging utilities for the application, with a focus on context-aware logging.
+
 ## Usage
 
 Each package has its own README.md file with detailed information on how to use it. Please refer to the individual package documentation for specific usage instructions.
