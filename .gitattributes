@@ -30,3 +30,48 @@ LICENSE text
 *.dll binary
 *.so binary
 *.dylib binary
+
+# GitHub Linguist Configuration - Go Only
+# Exclude vendored dependencies
+vendor/** linguist-vendored
+
+# Exclude generated files
+*.pb.go linguist-generated
+*_gen.go linguist-generated
+*_generated.go linguist-generated
+*.mock.go linguist-generated
+
+# Exclude Bazel files from language statistics
+*.bazel linguist-generated
+*.bzl linguist-generated
+BUILD linguist-generated
+WORKSPACE linguist-generated
+
+# Exclude documentation
+*.html linguist-documentation
+*.md linguist-documentation
+*.txt linguist-documentation
+LICENSE linguist-documentation
+
+# Exclude configuration files
+*.json linguist-generated
+*.yaml linguist-generated
+*.yml linguist-generated
+*.toml linguist-generated
+Makefile linguist-generated
+Dockerfile linguist-generated
+docker-compose.yml linguist-generated
+
+# Exclude shell scripts
+*.sh linguist-generated
+*.bat linguist-generated
+
+# Exclude test fixtures and data
+testdata/** linguist-vendored
+fixtures/** linguist-vendored
+*.golden linguist-vendored
+
+# Ensure Go files are detected
+*.go linguist-language=Go
+go.mod linguist-language=Go
+go.sum linguist-generated
